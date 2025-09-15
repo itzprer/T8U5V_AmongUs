@@ -195,7 +195,7 @@ export function SocialShare({ color, children }: SocialShareProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-[95vw] max-w-[720px] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5" />
@@ -207,7 +207,7 @@ export function SocialShare({ color, children }: SocialShareProps) {
           {/* Color Preview */}
           <Card>
             <CardContent className="p-4">
-              <div className="flex items-center gap-4">
+              <div className="flex items-start gap-4">
                 <div
                   className="w-16 h-16 rounded-lg border-2 border-gray-200 dark:border-gray-700"
                   style={{ backgroundColor: color.hex }}
@@ -271,7 +271,7 @@ export function SocialShare({ color, children }: SocialShareProps) {
               <CardTitle className="text-lg">Share on Social Media</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 <Button onClick={shareToTwitter} variant="outline" className="gap-2 bg-transparent">
                   <Twitter className="h-4 w-4" />
                   Twitter
@@ -298,8 +298,8 @@ export function SocialShare({ color, children }: SocialShareProps) {
               <CardTitle className="text-lg">Direct Link</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-2">
-                <Input value={generateShareableUrl()} readOnly className="font-mono text-sm" />
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input value={generateShareableUrl()} readOnly className="font-mono text-sm flex-1" />
                 <Button
                   onClick={() => {
                     navigator.clipboard.writeText(generateShareableUrl())
@@ -309,6 +309,7 @@ export function SocialShare({ color, children }: SocialShareProps) {
                     })
                   }}
                   variant="outline"
+                  className="shrink-0"
                 >
                   <Copy className="h-4 w-4" />
                 </Button>

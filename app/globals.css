@@ -130,6 +130,49 @@
 
 /* Added accessibility CSS classes */
 
+/* App background - layered gradients with soft blobs and optional subtle motion */
+.app-bg {
+  background:
+    radial-gradient(1000px 700px at -10% -10%, hsl(222 92% 92% / 0.9), transparent 60%),
+    radial-gradient(800px 650px at 110% -20%, hsl(275 92% 93% / 0.9), transparent 55%),
+    radial-gradient(720px 520px at 20% 120%, hsl(196 85% 92% / 0.9), transparent 55%),
+    linear-gradient(140deg, hsl(222 85% 96%), hsl(275 85% 96%));
+  min-height: 100dvh;
+  position: relative;
+}
+
+.dark .app-bg {
+  background:
+    radial-gradient(900px 650px at -10% -10%, hsl(240 55% 22% / 0.65), transparent 60%),
+    radial-gradient(800px 600px at 110% -20%, hsl(285 60% 24% / 0.65), transparent 55%),
+    radial-gradient(720px 520px at 20% 120%, hsl(200 55% 23% / 0.65), transparent 55%),
+    linear-gradient(140deg, hsl(222 45% 14%), hsl(260 45% 16%));
+}
+
+@keyframes float-blobs {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(2%, -1%, 0) scale(1.03); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.app-bg::after {
+  content: "";
+  position: fixed;
+  inset: -10vh -10vw;
+  background:
+    radial-gradient(560px 380px at 10% 20%, hsl(210 90% 70% / 0.28), transparent 60%),
+    radial-gradient(520px 340px at 90% 15%, hsl(275 90% 72% / 0.28), transparent 60%),
+    radial-gradient(520px 360px at 50% 95%, hsl(190 90% 68% / 0.26), transparent 60%);
+  filter: blur(42px) saturate(115%);
+  pointer-events: none;
+  animation: float-blobs 18s ease-in-out infinite;
+  z-index: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-bg::after { animation: none; }
+}
+
 /* High Contrast Mode */
 .high-contrast {
   --background: oklch(1 0 0);

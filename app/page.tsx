@@ -215,92 +215,148 @@ export default function ColorSensePage() {
     }
   }
 
+  // Precise color naming using nearest CSS named color in CIE Lab space
   const getColorName = (r: number, g: number, b: number): string => {
-    const colors = [
-      // Reds
-      { name: "Crimson", r: [180, 255], g: [0, 60], b: [0, 60] },
-      { name: "Red", r: [200, 255], g: [0, 100], b: [0, 100] },
-      { name: "Pink", r: [200, 255], g: [100, 200], b: [150, 255] },
-      { name: "Rose", r: [180, 255], g: [80, 150], b: [120, 180] },
+    const hexToRgb = (hex: string) => {
+      const h = hex.replace('#', '')
+      const bigint = Number.parseInt(h, 16)
+      return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 }
+    }
 
-      // Oranges
-      { name: "Orange", r: [200, 255], g: [100, 200], b: [0, 80] },
-      { name: "Coral", r: [200, 255], g: [120, 180], b: [80, 140] },
-      { name: "Peach", r: [220, 255], g: [180, 220], b: [120, 180] },
+    const srgbToLinear = (c: number) => {
+      const cs = c / 255
+      return cs <= 0.04045 ? cs / 12.92 : Math.pow((cs + 0.055) / 1.055, 2.4)
+    }
 
-      // Yellows
-      { name: "Yellow", r: [200, 255], g: [200, 255], b: [0, 100] },
-      { name: "Gold", r: [200, 255], g: [180, 220], b: [0, 80] },
-      { name: "Cream", r: [240, 255], g: [240, 255], b: [200, 240] },
+    const rgbToXyz = (r: number, g: number, b: number) => {
+      const R = srgbToLinear(r)
+      const G = srgbToLinear(g)
+      const B = srgbToLinear(b)
+      // sRGB D65
+      const x = R * 0.4124564 + G * 0.3575761 + B * 0.1804375
+      const y = R * 0.2126729 + G * 0.7151522 + B * 0.072175
+      const z = R * 0.0193339 + G * 0.119192 + B * 0.9503041
+      return { x, y, z }
+    }
 
-      // Greens
-      { name: "Lime", r: [150, 200], g: [200, 255], b: [0, 100] },
-      { name: "Green", r: [0, 150], g: [150, 255], b: [0, 150] },
-      { name: "Forest Green", r: [0, 100], g: [100, 180], b: [0, 100] },
-      { name: "Mint", r: [150, 200], g: [220, 255], b: [180, 220] },
-      { name: "Teal", r: [0, 120], g: [150, 220], b: [150, 220] },
+    const xyzToLab = (x: number, y: number, z: number) => {
+      // D65 reference white
+      const Xn = 0.95047
+      const Yn = 1
+      const Zn = 1.08883
+      const f = (t: number) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116)
+      const fx = f(x / Xn)
+      const fy = f(y / Yn)
+      const fz = f(z / Zn)
+      const L = 116 * fy - 16
+      const a = 500 * (fx - fy)
+      const bLab = 200 * (fy - fz)
+      return { L, a, b: bLab }
+    }
 
-      // Blues
-      { name: "Cyan", r: [0, 150], g: [200, 255], b: [200, 255] },
-      { name: "Sky Blue", r: [100, 180], g: [180, 220], b: [220, 255] },
-      { name: "Blue", r: [0, 150], g: [0, 150], b: [150, 255] },
-      { name: "Navy", r: [0, 80], g: [0, 80], b: [100, 180] },
-      { name: "Royal Blue", r: [50, 120], g: [80, 150], b: [180, 255] },
+    const deltaE = (lab1: { L: number; a: number; b: number }, lab2: { L: number; a: number; b: number }) => {
+      // Simple DeltaE 1976
+      const dL = lab1.L - lab2.L
+      const da = lab1.a - lab2.a
+      const db = lab1.b - lab2.b
+      return Math.sqrt(dL * dL + da * da + db * db)
+    }
 
-      // Purples
-      { name: "Lavender", r: [180, 220], g: [150, 200], b: [220, 255] },
-      { name: "Purple", r: [120, 200], g: [0, 150], b: [150, 255] },
-      { name: "Violet", r: [150, 220], g: [80, 150], b: [200, 255] },
-      { name: "Magenta", r: [200, 255], g: [0, 150], b: [200, 255] },
+    const rgbToLabFull = (rr: number, gg: number, bb: number) => {
+      const xyz = rgbToXyz(rr, gg, bb)
+      return xyzToLab(xyz.x, xyz.y, xyz.z)
+    }
 
-      // Browns
-      { name: "Brown", r: [100, 180], g: [50, 120], b: [20, 80] },
-      { name: "Tan", r: [180, 220], g: [150, 200], b: [100, 150] },
-      { name: "Beige", r: [220, 255], g: [200, 240], b: [180, 220] },
+    const targetLab = rgbToLabFull(r, g, b)
 
-      // Grays and neutrals
-      { name: "White", r: [240, 255], g: [240, 255], b: [240, 255] },
-      { name: "Light Gray", r: [180, 220], g: [180, 220], b: [180, 220] },
-      { name: "Gray", r: [100, 180], g: [100, 180], b: [100, 180] },
-      { name: "Dark Gray", r: [50, 100], g: [50, 100], b: [50, 100] },
-      { name: "Black", r: [0, 50], g: [0, 50], b: [0, 50] },
+    // Subset of CSS color names (accurate and compact). Add more if needed.
+    const NAMED_COLORS: { name: string; hex: string }[] = [
+      { name: 'Black', hex: '#000000' },
+      { name: 'White', hex: '#FFFFFF' },
+      { name: 'Gray', hex: '#808080' },
+      { name: 'Light Gray', hex: '#D3D3D3' },
+      { name: 'Dim Gray', hex: '#696969' },
+      { name: 'Red', hex: '#FF0000' },
+      { name: 'Crimson', hex: '#DC143C' },
+      { name: 'Salmon', hex: '#FA8072' },
+      { name: 'Tomato', hex: '#FF6347' },
+      { name: 'Coral', hex: '#FF7F50' },
+      { name: 'Orange', hex: '#FFA500' },
+      { name: 'Dark Orange', hex: '#FF8C00' },
+      { name: 'Gold', hex: '#FFD700' },
+      { name: 'Yellow', hex: '#FFFF00' },
+      { name: 'Khaki', hex: '#F0E68C' },
+      { name: 'Olive', hex: '#808000' },
+      { name: 'Lawn Green', hex: '#7CFC00' },
+      { name: 'Chartreuse', hex: '#7FFF00' },
+      { name: 'Lime', hex: '#00FF00' },
+      { name: 'Lime Green', hex: '#32CD32' },
+      { name: 'Green', hex: '#008000' },
+      { name: 'Forest Green', hex: '#228B22' },
+      { name: 'Sea Green', hex: '#2E8B57' },
+      { name: 'Teal', hex: '#008080' },
+      { name: 'Turquoise', hex: '#40E0D0' },
+      { name: 'Cyan', hex: '#00FFFF' },
+      { name: 'Light Cyan', hex: '#E0FFFF' },
+      { name: 'Sky Blue', hex: '#87CEEB' },
+      { name: 'Deep Sky Blue', hex: '#00BFFF' },
+      { name: 'Dodger Blue', hex: '#1E90FF' },
+      { name: 'Cornflower Blue', hex: '#6495ED' },
+      { name: 'Royal Blue', hex: '#4169E1' },
+      { name: 'Blue', hex: '#0000FF' },
+      { name: 'Medium Blue', hex: '#0000CD' },
+      { name: 'Navy', hex: '#000080' },
+      { name: 'Indigo', hex: '#4B0082' },
+      { name: 'Blue Violet', hex: '#8A2BE2' },
+      { name: 'Violet', hex: '#EE82EE' },
+      { name: 'Purple', hex: '#800080' },
+      { name: 'Magenta', hex: '#FF00FF' },
+      { name: 'Hot Pink', hex: '#FF69B4' },
+      { name: 'Deep Pink', hex: '#FF1493' },
+      { name: 'Orchid', hex: '#DA70D6' },
+      { name: 'Plum', hex: '#DDA0DD' },
+      { name: 'Lavender', hex: '#E6E6FA' },
+      { name: 'Beige', hex: '#F5F5DC' },
+      { name: 'Wheat', hex: '#F5DEB3' },
+      { name: 'Tan', hex: '#D2B48C' },
+      { name: 'Chocolate', hex: '#D2691E' },
+      { name: 'Sienna', hex: '#A0522D' },
+      { name: 'Brown', hex: '#A52A2A' },
+      { name: 'Maroon', hex: '#800000' },
+      { name: 'Silver', hex: '#C0C0C0' },
+      { name: 'Slate Gray', hex: '#708090' },
+      { name: 'Dark Slate Gray', hex: '#2F4F4F' },
+      { name: 'Light Sea Green', hex: '#20B2AA' },
+      { name: 'Medium Aquamarine', hex: '#66CDAA' },
+      { name: 'Aquamarine', hex: '#7FFFD4' },
+      { name: 'Pale Green', hex: '#98FB98' },
+      { name: 'Spring Green', hex: '#00FF7F' },
+      { name: 'Medium Spring Green', hex: '#00FA9A' },
+      { name: 'SeaShell', hex: '#FFF5EE' },
+      { name: 'Mint Cream', hex: '#F5FFFA' },
+      { name: 'Ivory', hex: '#FFFFF0' },
+      { name: 'Snow', hex: '#FFFAFA' },
     ]
 
-    // Find the best matching color
-    for (const color of colors) {
-      if (
-        r >= color.r[0] &&
-        r <= color.r[1] &&
-        g >= color.g[0] &&
-        g <= color.g[1] &&
-        b >= color.b[0] &&
-        b <= color.b[1]
-      ) {
-        return color.name
+    let bestName = 'Color'
+    let best = Number.POSITIVE_INFINITY
+
+    for (const c of NAMED_COLORS) {
+      const { r: rr, g: gg, b: bb } = hexToRgb(c.hex)
+      const lab = rgbToLabFull(rr, gg, bb)
+      const d = deltaE(targetLab, lab)
+      if (d < best) {
+        best = d
+        bestName = c.name
       }
     }
 
-    // Fallback to basic color detection if no match found
-    const hsl = rgbToHsl(r, g, b)
-    const hue = hsl.h
-    const saturation = hsl.s
-    const lightness = hsl.l
+    // If extremely bright or dark, coerce to white/black
+    const l = rgbToHsl(r, g, b).l
+    if (l > 97) return 'White'
+    if (l < 3) return 'Black'
 
-    if (lightness > 90) return "White"
-    if (lightness < 10) return "Black"
-    if (saturation < 10) return lightness > 70 ? "Light Gray" : lightness > 30 ? "Gray" : "Dark Gray"
-
-    // Determine color by hue
-    if (hue >= 0 && hue < 15) return "Red"
-    if (hue >= 15 && hue < 45) return "Orange"
-    if (hue >= 45 && hue < 75) return "Yellow"
-    if (hue >= 75 && hue < 150) return "Green"
-    if (hue >= 150 && hue < 210) return "Cyan"
-    if (hue >= 210 && hue < 270) return "Blue"
-    if (hue >= 270 && hue < 330) return "Purple"
-    if (hue >= 330 && hue <= 360) return "Red"
-
-    return "Colorful"
+    return bestName
   }
 
   const getColorDescription = (colorName: string): string => {
@@ -449,7 +505,7 @@ export default function ColorSensePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="p-4 bg-transparent">
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
@@ -472,6 +528,11 @@ export default function ColorSensePage() {
       </svg>
 
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Top-right controls */}
+        <div className="fixed top-4 right-4 z-50 flex gap-2">
+          <AccessibilitySettings />
+          <UserMenu />
+        </div>
         {/* Header */}
         <div className="flex flex-col items-center gap-2">
           <div className="text-center w-full">
@@ -492,11 +553,7 @@ export default function ColorSensePage() {
               <kbd className="px-2 py-1 bg-muted rounded text-xs">Alt+V</kbd> Voice Description
             </div>
           </div>
-          {/* UserMenu and Accessibility Settings */}
-          <div className="flex gap-2 flex-wrap justify-center md:justify-end w-full md:w-auto">
-            <AccessibilitySettings />
-            <UserMenu />
-          </div>
+          {/* UserMenu and Accessibility Settings moved to fixed top-right */}
         </div>
 
         {/* Vertical layout: camera → detected color → assistant → palette → history */}
