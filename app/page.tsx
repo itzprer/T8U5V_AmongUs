@@ -561,7 +561,7 @@ export default function ColorSensePage() {
         <div className="flex flex-col items-center gap-8 px-4" id="main-content">
           {/* Camera Section */}
           <div className="w-full max-w-3xl">
-            <Card className="overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-all duration-300">
+<Card className="overflow-hidden rounded-2xl shadow-md hover:shadow-[0_0_20px_rgba(147,51,234,0.4)] transition-all duration-300">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Camera className="h-5 w-5" aria-hidden="true" />
@@ -581,7 +581,7 @@ export default function ColorSensePage() {
                       />
                       {/* Crosshair overlay */}
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="w-12 h-12 border-2 border-white rounded-full shadow-lg flex items-center justify-center">
+<div className="w-12 h-12 border-2 border-white rounded-full shadow-lg flex items-center justify-center hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] transition-all duration-300">
                           <div className="w-8 h-8 border-2 border-black rounded-full opacity-50"></div>
                         </div>
                       </div>
@@ -632,7 +632,7 @@ export default function ColorSensePage() {
 
             {/* Detected Color Card */}
             {detectedColor && (
-              <Card className="mt-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300">
+<Card className="mt-6 rounded-2xl shadow-md hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] transition-all duration-300">
                 <CardHeader>
                   <CardTitle>Detected Color</CardTitle>
                 </CardHeader>
@@ -690,7 +690,7 @@ export default function ColorSensePage() {
 
           {/* Color Chatbot */}
           <div className="w-full max-w-3xl">
-            <Card className="rounded-2xl shadow-md hover:shadow-xl transition-all duration-300">
+<Card className="rounded-2xl shadow-md hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] transition-all duration-300">
               <CardHeader>
                 <CardTitle>Color Chatbot</CardTitle>
               </CardHeader>
@@ -702,7 +702,7 @@ export default function ColorSensePage() {
 
           {/* Palette Generator */}
           <div className="w-full max-w-3xl">
-            <Card className="rounded-2xl shadow-md hover:shadow-xl transition-all duration-300">
+<Card className="rounded-2xl shadow-md hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] transition-all duration-300">
               <CardHeader>
                 <CardTitle>Color Palette Generator</CardTitle>
               </CardHeader>
@@ -714,7 +714,7 @@ export default function ColorSensePage() {
 
           {/* Color History */}
           <div className="w-full max-w-3xl">
-            <Card className="rounded-2xl shadow-md hover:shadow-xl transition-all duration-300">
+<Card className="rounded-2xl shadow-md hover:shadow-[0_0_20px_rgba(147,51,234,0.5)] transition-all duration-300">
               <CardHeader>
                 <CardTitle>Color History</CardTitle>
               </CardHeader>
