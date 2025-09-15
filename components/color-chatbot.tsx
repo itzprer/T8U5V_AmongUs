@@ -1,12 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { MessageCircle, Send, Palette, Eye, Lightbulb, Sparkles, Volume2, Bot, User } from "lucide-react"
+import { Send, Palette, Eye, Lightbulb, Sparkles, Volume2, Bot, User, StopCircle } from "lucide-react"
 
 interface Message {
   id: string
@@ -38,6 +37,16 @@ export function ColorChatbot({ detectedColor }: ColorChatbotProps) {
   ])
   const [input, setInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
+  const [isSpeaking, setIsSpeaking] = useState(false)
+
+  // Ensure no auto-speak on mount; stop speaking on unmount
+  useEffect(() => {
+    return () => {
+      try {
+        window.speechSynthesis?.cancel()
+      } catch {}
+    }
+  }, [])
 
   const colorExplainer = (colorName: string, hex: string): string => {
     const explanations: Record<string, string> = {
@@ -223,26 +232,59 @@ What would you like to know about ${detectedColor.name} (${detectedColor.hex})?`
     setInput("")
     setIsTyping(true)
 
-    // Simulate AI thinking time
-    setTimeout(() => {
-      const response = generateResponse(input)
+    try {
+      // Build a short history for Gemini
+      const lastTurns = messages.slice(-8).map((m) => ({ role: m.type === "user" ? "user" : "bot", content: m.content }))
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [...lastTurns, { role: "user", content: input }],
+          detectedColor,
+        }),
+      })
+
+      if (!res.ok) throw new Error("Network error")
+      const data = await res.json()
+      const text: string = data.reply || "Sorry, I couldn't generate a response."
+
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: "bot",
-        content: response.content,
+        content: text,
         timestamp: new Date(),
-        category: response.category,
       }
 
       setMessages((prev) => [...prev, botMessage])
+    } catch (e) {
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "bot",
+        content: "There was an error contacting the AI service.",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, botMessage])
+    } finally {
       setIsTyping(false)
-    }, 1000)
+    }
   }
 
   const speakMessage = (content: string) => {
-    const utterance = new SpeechSynthesisUtterance(content)
-    utterance.rate = 0.8
-    speechSynthesis.speak(utterance)
+    try {
+      window.speechSynthesis?.cancel()
+      const utterance = new SpeechSynthesisUtterance(content)
+      utterance.rate = 0.9
+      utterance.onend = () => setIsSpeaking(false)
+      setIsSpeaking(true)
+      window.speechSynthesis?.speak(utterance)
+    } catch {}
+  }
+
+  const stopSpeaking = () => {
+    try {
+      window.speechSynthesis?.cancel()
+      setIsSpeaking(false)
+    } catch {}
   }
 
   const getCategoryIcon = (category: Message["category"]) => {
@@ -280,15 +322,9 @@ What would you like to know about ${detectedColor.name} (${detectedColor.hex})?`
   }
 
   return (
-    <Card className="flex flex-col h-full max-h-[70vh] md:max-h-[75vh]">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
-          ColorSense AI Assistant
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col gap-4 p-4">
-        <ScrollArea className="flex-1 pr-4">
+    <div className="flex flex-col gap-4">
+      {/* Messages */}
+      <ScrollArea className="h-[360px] md:h-[480px] pr-4">
           <div className="space-y-4">
             {messages.map((message) => (
               <div
@@ -357,9 +393,10 @@ What would you like to know about ${detectedColor.name} (${detectedColor.hex})?`
               </div>
             )}
           </div>
-        </ScrollArea>
+      </ScrollArea>
 
-        <div className="flex gap-2">
+      {/* Controls */}
+      <div className="flex gap-2">
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -370,10 +407,13 @@ What would you like to know about ${detectedColor.name} (${detectedColor.hex})?`
           <Button onClick={handleSend} disabled={isTyping || !input.trim()}>
             <Send className="h-4 w-4" />
           </Button>
+          <Button variant="outline" onClick={stopSpeaking} disabled={!isSpeaking} className="bg-transparent">
+            <StopCircle className="h-4 w-4 mr-1" /> Stop
+          </Button>
         </div>
 
-        {/* Quick Action Buttons */}
-        <div className="flex flex-wrap gap-2">
+      {/* Quick Action Buttons */}
+      <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={() => setInput("Explain this color")} className="text-xs">
             <Lightbulb className="h-3 w-3 mr-1" />
             Explain
@@ -390,8 +430,7 @@ What would you like to know about ${detectedColor.name} (${detectedColor.hex})?`
             <Sparkles className="h-3 w-3 mr-1" />
             Creative
           </Button>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

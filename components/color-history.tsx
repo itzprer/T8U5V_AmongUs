@@ -182,7 +182,7 @@ export function ColorHistory({ onColorSelect }: ColorHistoryProps) {
       <CardContent className="space-y-4">
         {/* Search and Filter */}
         <div className="flex gap-2 flex-wrap">
-          <div className="relative flex-1">
+          <div className="relative flex-1 min-w-[220px]">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search colors..."
@@ -206,7 +206,7 @@ export function ColorHistory({ onColorSelect }: ColorHistoryProps) {
         </div>
 
         {/* Color Grid */}
-        <ScrollArea className="h-[360px] md:h-[420px]">
+        <ScrollArea className="h-[320px] sm:h-[360px] md:h-[420px]">
           {filteredColors.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               {savedColors.length === 0 ? (

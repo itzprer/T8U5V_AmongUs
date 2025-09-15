@@ -473,8 +473,8 @@ export default function ColorSensePage() {
 
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="text-center flex-1">
+        <div className="flex flex-col items-center gap-2">
+          <div className="text-center w-full">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Palette className="h-8 w-8 text-blue-600" aria-hidden="true" />
               <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">
@@ -493,7 +493,7 @@ export default function ColorSensePage() {
             </div>
           </div>
           {/* UserMenu and Accessibility Settings */}
-          <div className="absolute top-4 right-4 flex gap-2">
+          <div className="flex gap-2 flex-wrap justify-center md:justify-end w-full md:w-auto">
             <AccessibilitySettings />
             <UserMenu />
           </div>
