@@ -183,7 +183,7 @@ export function ColorPaletteGenerator({ baseColor }: ColorPaletteGeneratorProps)
           <p className="text-muted-foreground text-center py-8">Detect a color first to generate palettes</p>
         ) : (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {["complementary", "triadic", "analogous", "monochromatic", "tetradic"].map((type) => (
                 <Button
                   key={type}
@@ -199,7 +199,7 @@ export function ColorPaletteGenerator({ baseColor }: ColorPaletteGeneratorProps)
 
             {currentPalette.length > 0 && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <h3 className="font-semibold capitalize">{paletteType} Palette</h3>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" onClick={() => generatePalette(paletteType)}>
@@ -211,7 +211,7 @@ export function ColorPaletteGenerator({ baseColor }: ColorPaletteGeneratorProps)
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                   {currentPalette.map((color, index) => (
                     <div key={index} className="space-y-2">
                       <div
